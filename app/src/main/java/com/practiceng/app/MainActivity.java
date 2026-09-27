@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.*;
 import android.webkit.*;
 import android.view.*;
+import android.util.Base64;
 import org.json.JSONObject;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -34,7 +35,21 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         web.addJavascriptInterface(new Bridge(), "AndroidBridge");
         try {
-            GZIPInputStream gz = new GZIPInputStream(getAssets().open("index.html.gz"));
+            StringBuilder b64 = new StringBuilder();
+            for (int part = 0; ; part++) {
+                String name = String.format(java.util.Locale.US, "index.html.gz.b64.part%02d", part);
+                try {
+                    InputStream pin = getAssets().open(name);
+                    ByteArrayOutputStream pout = new ByteArrayOutputStream();
+                    byte[] pbuf = new byte[8192];
+                    int pn;
+                    while ((pn = pin.read(pbuf)) != -1) pout.write(pbuf, 0, pn);
+                    pin.close();
+                    b64.append(new String(pout.toByteArray(), StandardCharsets.US_ASCII));
+                } catch (FileNotFoundException missing) { break; }
+            }
+            byte[] gzBytes = Base64.decode(b64.toString(), Base64.DEFAULT);
+            GZIPInputStream gz = new GZIPInputStream(new ByteArrayInputStream(gzBytes));
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[16384];
             int n;
