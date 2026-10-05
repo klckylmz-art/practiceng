@@ -1,6 +1,10 @@
-name: Build Android APK
+name: Build Daily 200 APK
 on:
   workflow_dispatch:
+  push:
+    branches: [daily200-quiz-apk]
+    paths:
+      - '.daily200-build-trigger'
 permissions:
   contents: read
 jobs:
@@ -18,6 +22,6 @@ jobs:
       - run: gradle :app:assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: PracticEng-debug-apk
+          name: Daily200-English-Quiz-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
